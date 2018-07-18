@@ -1,0 +1,19 @@
+Download mysql command line client from google.
+Install it. It'll give option to install mysql workbench as well. Install that as well.
+Configure the mysql and remember the port number and the password.
+Open mysql workbench and click on databse->connect->select your mysql database->finish
+You can enter your queries in the workspace populated. Use Ctrl+Enter to execute the queries.
+
+create database manideep; --to create db(you can see db got created under schema at left side of mysql workbench)
+use manideep;			  --to perform any operation on that db
+create table student(rollno int,sname varchar(20));  --to create table inside db(you can see table got created under schemas)
+
+Also, you can enter desc student; to see the columns inside the table(It won't display values present for columns)
+
+DDL - Data Definition Language -->Add/Drop tables
+DML - Data Manipulation Language --> Insert/Update/Delete values in a table
+DRL/DQL/DSL - Data Retrieval/Selection/Query Language --> Select query
+
+insert into student values(15,'manideep');
+insert into student values(11,'jashwanth');
+select * from student; --display values inside table

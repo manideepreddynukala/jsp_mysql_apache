@@ -1,0 +1,160 @@
+Login page using Apache
+------------------------
+
+1)Download Eclipse for Java EE.
+2) Goto New-> Dynamic web project.
+3) If you don't find one, goto help-> Install updates->select java ee version -> select web,xml option and istall.
+4) Goto apache tomcat and download latest version and install. Give the port nos. You can always change the port at 
+C:\Program Files\Apache Software Foundation\Tomcat 9.0\conf\server.xml if there is any conflict in future.
+5) Goto eclipse, window->Preferences->Server-> Runtime environment->add->select latest version
+6) Goto New-> Dynamic web project-> select apache-> Finish
+7) We will put java files under java folder. We will put jsp under webcontent folder inside the application in eclipse.
+8) Right click on web content and click on new->jsp file(Login.jsp)->Finish.
+9)Inside the <body> of Login.jsp, write the below code.
+									 ____________
+<body>								|			  Servlet
+	<form method="post" action="LoginCheck">
+		<table>
+			<tr><td>User Name</td><td><input type="text" name="uname"></td></tr>
+			<tr><td>Password</td><td><input type="password" name="password"></td></tr>
+			<tr><td></td><td><input type="submit" value="Login"></td></tr>
+		</table>
+	</form>
+</body>
+10)Ctrl+Shift+F is for formatting in Eclipse(getting tabs)
+
+11)Right click on the src under java folder to create a servlet(Give LoginCheck on the classname).
+12)When we click on submit button, control will come to doPost method of LoginCheck because we have used post method in Login.jsp.
+	LoginCheck.jsp
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		//request will hold the parameters entered in jsp page
+		String uname = request.getParameter("uname");
+		String password =request.getParameter("password");
+		if(uname.equals("Java") && password.equals("1234")) {
+			response.sendRedirect("Member.jsp");
+		}
+		else {
+			response.sendRedirect("Error.jsp");
+		}
+	}
+	
+	To redirect based on particular condition, we have two methods
+	a)sendRedirect
+	b)requestDispatcher
+	We are using first method in the line 33 above.
+	
+	Create two new jsp pages member.jsp and error.jsp by right clicking on web content.
+	
+	Right click on project->Run as->Server->finish
+	The application will get deployed on the server.
+	Goto http://localhost:8080/simpleLogin/Login.jsp to check the response.
+	
+We can now directly open the Member.jsp without logging in.
+Now, I want to access Member.jsp only when user logged in. I use sessions in this case
+LoginCheck.jsp
+
+		String uname = request.getParameter("uname");
+		String password =request.getParameter("password");
+		if(uname.equals("Java") && password.equals("1234")) {
+			HttpSession session = request.getSession();
+			session.setAttribute("username",uname);
+			response.sendRedirect("Member.jsp");
+		}
+		
+Member.jsp
+		<body>
+		<%
+		if(session.getAttribute("username")==null){
+		response.sendRedirect("Login.jsp");
+		}
+		%>
+		Welcome. You are logged in.
+		</body>
+
+										
+Now, I want to create logout button(Member.jsp cannot be opened, if I logout)
+Member.jsp
+	Welcome. You are logged in.
+	<form action="Logout">
+		<input type="submit" value="Logout">
+	</form>
+	</body>
+You can import packages in eclipse using Ctrl+Shift+O
+Now create Logout.java servlet
+	public class Logout extends HttpServlet {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		HttpSession session = request.getSession();
+		session.removeAttribute("username");
+		session.invalidate();
+	}
+Now,Login and open member.jsp on two tabs. Now logout in one tab and if you refresh in second tab, it'll redirect to login. Means earlier
+logged in session got invalidated.
+
+In Login.jsp if you don't mention the form method, it'll consider by default as get.
+But, whenever you are sending data to server, mention the method as post.
+
+If you want to insert a youtube video, goto a particular video and click on share and you'll see EMBED URL. Directly copy that link and
+paste it in your body tag of jsp file.
+
+How to Prevent Back button in browser after Logout?
+	<body>
+<%
+	response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); //remember this line. Browser understand only this line.
+	if(session.getAttribute("username")==null){
+	response.sendRedirect("Login.jsp");
+	}
+%>
+
+Paste the above code where ever your logout button is present(member.jsp). This prevents access to member.jsp when you press back button on 
+browser once you logout.
+
+
+if(session.getAttribute("username")==null)
+response.sendRedirect("Login.jsp");
+We are using above line in Member.jsp file to validate if user is logged in. Now, it'll redirect to Login if user is not logged in. If, you
+login in one browser and then open another browser and open Member.jsp, this will again redirect again to Login.jsp in second browser.
+Because, the session in first browser is different from the second browser.
+
+Now,we are performing static testing to verify username and password in the above code. Let's do dynamic testing(fetching values from db
+and check with the values entered from Login.jsp). Follow the steps in Mysql steps.
+After that goto eclipse->java resources->src->Create a class LoginDao under com.login.Dao package.(DAO- Data Access Object)
+It is not mandatory to name it as dao, but whenever you're dealing with db, it's a convention to use dao.
+
+Check the JDBC steps.
+
+Alt+Shift+Z for surround with try catch block in eclipse
+Write below code in Java class LoginDao.java
+	package com.login.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+
+public class LoginDao {
+	String url = "jdbc:mysql://localhost:3316/manideep";  //database name
+	String username = "root";
+	String password = "manipinku95";
+	String query = "select * from login where uname=? and pass=?";
+public boolean check(String uname,String pass) {
+	
+	try {
+		Class.forName("com.mysql.jdbc.Driver");
+		Connection con = DriverManager.getConnection(url, username, password);
+		PreparedStatement pst = con.prepareStatement(query);
+		pst.setString(1,uname);
+		pst.setString(2,pass);
+		ResultSet rs = pst.executeQuery();
+		if(rs.next()) {
+			return true;
+		}
+	} 
+	
+	catch (Exception e) {
+		
+	}
+	return false;
+}
+}
+
+Create the object for this class in LoginCheck.jsp and replace the static condition for checking the name and password.

@@ -1,0 +1,117 @@
+1) Import the package (java.sql.*)
+
+2) Load and Register the driver
+com.mysql.jdbc.driver - this is driver only for mysql. For loadng it is available in mysql-connector jar file.
+Download it from google. In netbeans this jar file is inbuilt. For eclipse, we have to download and import. For registering, use forName("com.
+mysql.jdbc.driver")
+
+3) Establish the connection(Instantiate the interface Connection)
+Connection is an interface. So, we don't create object like below. 
+Connection con = new connection();
+We need to search for a method which gives instance to the interface. So, we use getConnection().
+Connection con = DriverManager.getConnection('URL','username','password');
+
+4) Create the statement
+Statement st = con.createStatement();
+We have three types of statements.
+a)Statement - You can execute a query using Statement object
+b)Prepared Statement- When there is a inbuilt query and you want to change values in query, you use this
+c)Callable Statement - When you want to execute procedural language(PL) statements/ stored procedures in SQL.
+
+5) Execute the query
+ResultSet rs = st.executeQuery("select * from student");
+
+6) Process the result
+
+	Roll no     name
+	1			mani
+	2			sudheer
+	3			jash
+	
+Let's say we got this table from the above select query. Initially, the control will be at roll no. To fetch the first record, we do rs.next()
+then, rs.getInt(1)+ " " + r.getString(1) gives 1 mani
+If we need second record, do rs.next() and do rs.getInt or rs.getString
+
+Instead of writing that rs.next() everytime, we do while(rs.next()). Inside the while loop we write rs.getInt and rs.getString.
+
+7) Close the connection
+st.close() and con.close().
+
+How to load jar file
+----------------------
+Right click on your project in eclipse
+Click build path
+configure build path
+On libraries click on add external jar(download mysql-connector jar file from google and add it)You can see this added under libraries
+under the java resources.
+
+
+Demo program
+------------------
+my port 3316, db name manideep
+
+package com.jdbc;
+import java.sql.*; //step1
+public class Demo {
+
+	public static void main(String[] args) throws Exception{
+		String url = "jdbc:mysql://localhost:3316/manideep";  //database name
+		String uname = "root";
+		String pass = "manipinku95";
+		Class.forName("com.mysql.jdbc.Driver"); //step2
+		Connection con = DriverManager.getConnection(url, uname, pass);//step3
+		Statement st = con.createStatement(); //step4
+		ResultSet rs = st.executeQuery("select sname from student where rollno=15");//step5
+		rs.next();
+		String name = rs.getString(1); //rs.getString("sname") /step6
+		System.out.println(name);
+		st.close(); //step 7
+		con.close();
+	}
+
+}
+
+For insert
+-------------
+		
+		int count = st.executeUpdate("insert into student values(56,'sudheer')");
+		System.out.println(count+" number of rows affected");
+		
+Instead of values,if we have variables,we can do the above query as
+			int count = st.executeUpdate("insert into student values("+userid+",'"+username+"')");
+			
+If we have two variables, we did these double quotes and +s in the above line. If, we have more variables, then the above procedure becomes
+messy. In that case we use preparedStatement.
+
+		int rollno =5;
+		String sname = "Ayyappa";
+		String query = "insert into student values(?,?)";
+		PreparedStatement pst = con.prepareStatement(query); //Prepared Statement
+		pst.setInt(1,rollno);
+		pst.setString(2,sname);
+		int count = pst.executeUpdate();
+		System.out.println(count+" number of rows affected");
+		
+forName()
+-------------
+Class.forName()->Method name
+  |
+Class name(Here Class itself is the name of the class which contains forName)
+
+Let's say we have two classes Demo and ABC.
+			Demo						ABC
+			----------					--------------
+			main{}						static{"In static"}
+										{"In instance"}
+If I create object for ABC inside main()-> PQR pqr = new PQR();
+Then I'll get response as In static
+						  In instance
+						  
+Creating the object do two things. Loading the class ABC and creating object for ABC. Loading the class calls static block and object calls
+instance block. So, whenever we just want to load the class, we use Class.forName("PQR") inside main(). This gives output In static.
+When you say Class.forName("PQR").newInstance() it'll create object. So, both static and instance blocks get executed.
+
+So for registering driver, instead of writing DriverManager.registerDriver(new com.mysql.jdbc.Driver()); we are writing
+Class.forName("com.mysql.jdbc.Driver");
+
+See Java Database Connectivity with DAO example part 1&2 Telusko Learnings
